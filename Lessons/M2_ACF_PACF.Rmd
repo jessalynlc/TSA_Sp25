@@ -88,10 +88,13 @@ A plot of observed values over time is the first thing you do to start understan
 
 ```{r}
 #using package ggplot2
-ggplot()
+ggplot(inflow_data, aes(x = my_date, y = HP1))+
+  geom_line()
 
 #adding two time series to the same plot
-
+ggplot(inflow_data, aes(x = my_date))+
+  geom_line(aes(y=HP1))+
+  geom_line(aes(y=HP3))
 ```
 
 In this course we will also use *autoplot()* which is a ggplot() for time series object. But then we will need to convert our inflow data frame to a *ts* object first.
@@ -102,7 +105,7 @@ In this course we will also use *autoplot()* which is a ggplot() for time series
 Many of the functions we will use require a time series object. You can transform your data in a time series using the function *ts()*. Only the columns with reservoir inflow data should be transformed, not the ones with month and year. Your ts object is not a data frame, but like I said we will need it as a ts for some function we will explore in future scripts.
 
 ```{r}
-ts_inflow_data <- #####
+ts_inflow_data <- ts(inflow_data[,2:4], start =c(1931,1), frequency = 12) #need to exclude date column or else it will try to convert it as well! Frequency helps to model seasonality of dataset here. If you have daily data, frequency would be 365 because after 365 days you would be starting over at Jan 1st
 ts_inflow_data
 
 ```
@@ -127,9 +130,17 @@ There are multiple ways to get acf and pacf plots in R. The default package "sta
 
 ```{r acf}
 # Option 1: The function acf() and pacf() is from package "stats"
-HP1_acf=
+#gave acf function your first column, then ask the function to plot 40 lags
+HP1_acf=Acf(ts_inflow_data[,1], lag = 60)
+#First bar represents correlation at lag 0, calculating correlation between t and t (ie dec and dec, or nov and nov, month with itself)
+#Second bar is close to 0.8, this is telling you that correlation at lag 1 is between .8 and .9. Relationship bw month and month before is 0.8.
+#acf cyclical means that data has strong seasonal component
+#lag 60 is relationship between today and 60 months ago
+#lag 12 is relationship between today and 12 months ago
+#case sensitive acf vs Acf, capital shows lag correctly but does not start at 0
 
-HP1_pacf=
+HP1_pacf= Pacf(ts_inflow_data[,1], lag = 60)
+#notice first bar is the second bar in the acf
 
 #Option 2: Computing ACF and PACF with package "forecast"
 
