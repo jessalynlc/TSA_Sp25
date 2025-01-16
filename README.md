@@ -11,4 +11,4 @@ luana.marangon.lima@duke.edu <br>
 Office hours: Tu 13:15 -14:15 (in person Gross Hall 102K or Zoom) or by appt <br>
 Zoom info: https://duke.zoom.us/my/luanalima
 
-
+Student: Jessalyn Chuang
