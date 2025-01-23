@@ -35,6 +35,7 @@ energy_data1 <- read_excel(path="./Data/Table_10.1_Renewable_Energy_Production_a
 
 #Now let's extract the column names from row 11
 read_col_names <- read_excel(path="./Data/Table_10.1_Renewable_Energy_Production_and_Consumption_by_Source.xlsx",skip = 10,n_max = 1, sheet="Monthly Data",col_names=FALSE) 
+#n_max = tells read_excel that you are only interested in row 11, don't read more than 1 row
 
 #Assign the column names to the data set
 colnames(energy_data1) <- read_col_names
