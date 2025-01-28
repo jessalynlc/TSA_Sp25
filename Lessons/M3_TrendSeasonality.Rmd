@@ -2,6 +2,8 @@
 title: "M3: Class Exercise on Trend and Season"
 author: "Luana Lima"
 output: pdf_document
+editor_options: 
+  chunk_output_type: inline
 ---
 
 ## Setting R code chunk options
@@ -32,7 +34,7 @@ Let's continue working with our inflow data for reservoirs in Brazil.
 ```{r}
 
 #Importing time series data from text file#
-raw_inflow_data <- read.table(file="../Data/inflowtimeseries.txt",header=FALSE,skip=0)
+raw_inflow_data <- read.table(file="./Data/inflowtimeseries.txt",header=FALSE,skip=0)
 
 #Trim the table to include only columns you need
 nhydro <- ncol(raw_inflow_data)-2
@@ -137,20 +139,32 @@ Let's identify and remove trend component. You start by fitting a linear model t
 
 ```{r}
 #Create vector t
-
-
+t <- c(1:nrow(inflow_data)) 
 
 #Fit a linear trend to TS of iHP
-
-
+data_HP1 <- data.frame("t" = t, "inflowHP1" = inflow_data$HP1)
+linear_trend_HP1 = lm(inflowHP1~t, data_HP1)
+summary(linear_trend_HP1)
 ```
 
 
 ```{r}
 #remove the trend from series
 
+#grabbing intercept term (beta0)
+beta0 = as.numeric(linear_trend_HP1$coefficients[1])
 
+#grabbing slope term (beta1)
+beta1 = as.numeric(linear_trend_HP1$coefficients[2])
 
+#create linear trend series
+linear_trend <- (beta0 + beta1*t)
+detrend_inflow <-  inflow_data[,2] - linear_trend
+ts_detrend <- ts(detrend_inflow, start = c(1931,1), frequency = 12)
+
+#visualize trend on observed data
+autoplot(ts_inflow_data[,1])+
+  autolayer(ts_detrend, series="Series Detrended")
 ```
 
 Note that blue line is our original series, red line is our trend, green line is our original series minus the trend or in other words the detrended series. And in orange is the trend line for the detrended series which has slope 0 meaning we were able to effectively eliminate the trend with a linear model.
@@ -163,7 +177,12 @@ Now let's shift attention to the seasonal component.
 ```{r}
 #Use seasonal means model
 
+#Create seasonal dummies
+dummies <- seasonaldummy(ts_detrend)
 
+#fit a linear model to the seasonal dummies
+seas_means_model = lm(ts_detrend~dummies)
+summary(seas_means_model)
 ```
 
 ##Exercise
