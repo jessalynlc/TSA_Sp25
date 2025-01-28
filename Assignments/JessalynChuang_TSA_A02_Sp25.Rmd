@@ -1,7 +1,7 @@
 ---
 title: "ENV 790.30 - Time Series Analysis for Energy Data | Spring 2025"
 subtitle: "Assignment 2 - Due date 01/23/25"
-author: "Student Name"
+author: "Jessalyn Chuang"
 output: pdf_document
 geometry: margin=2.54cm
 ---
@@ -22,7 +22,13 @@ R packages needed for this assignment:"forecast","tseries", and "dplyr". Install
 
 ```{r}
 #Load/install required package here
-
+library(forecast)
+library(tseries)
+library(dplyr)
+library(lubridate)
+library(ggplot2)
+library(readxl)
+library(openxlsx)
 ```
 
 
@@ -32,7 +38,16 @@ Consider the data provided in the spreadsheet "Table_10.1_Renewable_Energy_Produ
 
 ```{r}
 #Importing data set
+energy_data <- read_excel(path="./Data/Table_10.1_Renewable_Energy_Production_and_Consumption_by_Source.xlsx",skip = 12, sheet="Monthly Data",col_names=FALSE) 
 
+#Extract column names from from row 11
+read_col_names <- read_excel(path="./Data/Table_10.1_Renewable_Energy_Production_and_Consumption_by_Source.xlsx",skip = 10,n_max = 1, sheet="Monthly Data",col_names=FALSE) 
+
+#Assign the column names to the data set
+colnames(energy_data) <- read_col_names
+
+#Visualize the first rows of the data set
+head(energy_data)
 ```
 
 
@@ -41,6 +56,9 @@ You will work only with the following columns: Total Biomass Energy Production, 
 
 ```{r}
 
+energy_subset <- energy_data[, c(1, 4:6)]
+head(energy_subset)
+energy_subset$Month <- ymd(energy_subset$Month)
 ```
 
 
@@ -48,7 +66,7 @@ You will work only with the following columns: Total Biomass Energy Production, 
 Transform your data frame in a time series object and specify the starting point and frequency of the time series using the function ts().
 
 ```{r}
-
+energy_subset_ts <- ts(energy_subset[,2:4],start=c(1973,1),frequency=12)
 ```
 
 
@@ -56,7 +74,18 @@ Transform your data frame in a time series object and specify the starting point
 Compute mean and standard deviation for these three series.
 
 ```{r}
+# Find mean for each column
+column_means <- apply(energy_subset_ts, 2, mean, na.rm = TRUE)
 
+# Find the standard deviation for each column
+column_sd <- apply(energy_subset_ts, 2, sd, na.rm = TRUE)
+
+# Print results
+print("Means of each series:")
+print(column_means)
+
+print("Standard deviations of each series:")
+print(column_sd)
 ```
 
 
@@ -64,31 +93,79 @@ Compute mean and standard deviation for these three series.
 Display and interpret the time series plot for each of these variables. Try to make your plot as informative as possible by writing titles, labels, etc. For each plot add a horizontal line at the mean of each series in a different color.
 
 ```{r}
+autoplot(energy_subset_ts) +
+  labs(
+    x = "Month", 
+    y = "Energy (Trillion Btu)", 
+    title = "Energy Production/Consumption in Trillion Btu (1973 - 2024)", 
+    color = "Renewable Energy Production/Consumption Source"
+  ) +
+  #Adding horizontal lines at the means with labels
+  geom_hline(yintercept = column_means[1], color = "red", linetype = "dashed", size = 0.8) +
+  geom_hline(yintercept = column_means[2], color = "green", linetype = "dashed", size = 0.8) +
+  geom_hline(yintercept = column_means[3], color = "blue", linetype = "dashed", size = 0.8) +
+  annotate("text", x = max(time(energy_subset_ts)) - 50, y = column_means[1], 
+           label = paste("mean:", round(column_means[1], 2)), color = "red", vjust = -0.5, size = 3.5) +
+  annotate("text", x = max(time(energy_subset_ts)) - 50, y = column_means[2], 
+           label = paste("mean:", round(column_means[2], 2)), color = "green", vjust = -0.5, size = 3.5) +
+  annotate("text", x = max(time(energy_subset_ts)) - 50, y = column_means[3], 
+           label = paste("mean:", round(column_means[3], 2)), color = "blue", vjust = -0.5, size = 3.5)
 
 ```
 
+The plot shows the trends in Total Biomass Energy Production, Total Renewable Energy Production, and Hydroelectric Power Consumption from 1973 to 2024. Biomass and total renewable energy show significant upward trends, with production accelerating quickly after the 2000s. In contrast, hydroelectric power consumption remains relatively stable over time, fluctuating seasonally around its mean of 79.55 Trillion BTU. This divergence alludes to the shift in energy systems toward diversified renewable sources, with biomass and other renewables driving the overall growth while hydroelectric power maintains a steady role.
 
 ## Question 5
 Compute the correlation between these three series. Are they significantly correlated? Explain your answer.
 
 ```{r}
+str(energy_subset)  
+# Perform correlation tests for each pair of series
+cor_test_biomass_renewable <- cor.test(
+                            energy_subset$`Total Biomass Energy Production`, 
+                             energy_subset$`Total Renewable Energy Production`)
+cor_test_biomass_hydro <- cor.test( energy_subset$`Total Biomass Energy Production`,
+                                    energy_subset$`Hydroelectric Power Consumption`)
+cor_test_renewable_hydro <- cor.test(energy_subset$`Total Renewable Energy Production`, 
+                                     energy_subset$`Hydroelectric Power Consumption`)
 
+# Print the results
+print("Correlation Test between Total Biomass Energy Production and Total Renewable Energy Production:")
+print(cor_test_biomass_renewable )
+
+print("Correlation Test between Total Biomass Energy Production and Hydroelectric Power Consumption:")
+print(cor_test_biomass_hydro)
+
+print("Correlation Test between Total Renewable Energy Production and Hydroelectric Power Consumption:")
+print(cor_test_renewable_hydro)
 ```
 
+The correlation tests reveal varying relationships between the energy production and consumption variables. The strongest and most significant correlation was found between Total Biomass Energy Production and Total Renewable Energy Production (r = 0.9678, p < 2.2e-16). This indicates a very strong positive relationship, suggesting that increases in biomass energy production are closely tied to increases in overall renewable energy production.
+
+In contrast, the correlation between Total Biomass Energy Production and Hydroelectric Power Consumption is weakly negative (r = -0.1143) but statistically significant (p = 0.0043). Although the correlation is weak, the negative value suggests a slight inverse relationship, potentially indicating that variations in biomass energy production and hydroelectric consumption are not strongly aligned and may operate independently or inversely influenced by other factors.
+
+The correlation between Total Renewable Energy Production and Hydroelectric Power Consumption is very weak (r = -0.0292) and not statistically significant (p = 0.4682). This suuggests that there is no meaningful relationship between these two variables.
 
 ## Question 6
 Compute the autocorrelation function from lag 1 up to lag 40 for these three variables. What can you say about these plots? Do the three of them have the same behavior?
 
 ```{r}
-
+biomass_acf=Acf(energy_subset_ts[,1],lag=40)
+renewable_acf=Acf(energy_subset_ts[,2],lag=40)
+hydro_acf=Acf(energy_subset_ts[,3],lag=40)
 ```
 
+The ACF for both Biomass Energy Production and Renewable Energy Production shows very high autocorrelation at lag 1 that gradually declines but remains significant across many lags. This pattern suggests strong temporal dependence and potential non-stationarity in the series. It seems like past values heavily influence future values. This is reasonable as renewable energy production includes biomass as a component, and the two are likely influenced by similar long-term growth trends.
+
+The ACF for Hydroelectric Power Consumption behaves differently. It has oscillations, and the correlations are not consistently high across lags. This behavior suggests different underlying dynamics, possibly driven by seasonal or cyclical factors. The fluctuating correlations imply that hydroelectric power consumption may be closer to stationarity or less dominated by long-term growth trends compared to biomass and renewable energy production.
 
 ## Question 7
 Compute the partial autocorrelation function from lag 1 to lag 40 for these three variables. How these plots differ from the ones in Q6?
 
 ```{r}
-
+biomass_pacf=Pacf(energy_subset_ts[,1],lag=40)
+renewable_pacf=Pacf(energy_subset_ts[,2],lag=40)
+hydro_pacf=Pacf(energy_subset_ts[,3],lag=40)
 ```
 
-
+For Biomass and Renewable Energy Production, the PACF shows a strong spike at lag 1, with much smaller values in following lags. This indicates that both series are mostly influenced by their immediate past values. Unlike the ACF, which showed high autocorrelation over many lags, the PACF reveals that these longer-term correlations are largely indirect effects of lag 1. Meanwhile, the PACF for Hydroelectric Power Consumption shows a strong spike at lag 1, along with smaller but significant spikes at higher lags. These oscillations suggest the presence of seasonal behavior, aligning with the patterns observed in its ACF plot.
