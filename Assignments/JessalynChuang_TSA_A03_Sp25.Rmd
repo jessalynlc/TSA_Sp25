@@ -192,10 +192,79 @@ Just by looking at the time series and the acf plots, do the series seem to have
 ### Q7
 Use function *lm()* to fit a seasonal means model (i.e. using the seasonal dummies) the two time series. Ask R to print the summary of the regression. Interpret the regression output. From the results which series have a seasonal trend? Do the results match you answer to Q6?
 
+```{r Seasonal Means Model for Renewable}
+dummies_renewable <- seasonaldummy(ts_renewable_detrend)
+
+seas_means_model_renewable <- lm(ts_renewable_detrend ~ dummies_renewable)
+summary(seas_means_model_renewable)
+
+beta_intercept_renewable <- seas_means_model_renewable$coefficients[1]
+beta_coeff_renewable <- seas_means_model_renewable$coefficients[2:12]
+```
+
+```{r Seasonal Means Model for Hydro}
+dummies_hydro <- seasonaldummy(ts_hydro_detrend)
+
+seas_means_model_hydro <- lm(ts_hydro_detrend ~ dummies_hydro)
+summary(seas_means_model_hydro)
+
+beta_intercept_hydro <- seas_means_model_hydro$coefficients[1]
+beta_coeff_hydro <- seas_means_model_hydro$coefficients[2:12]
+```
+
 ### Q8
 Use the regression coefficients from Q7 to deseason the series. Plot the deseason series and compare with the plots from part Q1. Did anything change?
+
+```{r Plot deseason series for renewable}
+renewable_seas_comp <- array(0, nobs)
+i <- 1
+for(i in 1:nobs){
+  renewable_seas_comp[i] <- beta_intercept_renewable + beta_coeff_renewable %*% 
+    dummies_renewable[i,]
+}
+
+deseason_renewable <- energy_subset[1] - renewable_seas_comp
+
+ts_deseason_renewable_data <- ts(deseason_renewable, start = c(1973,1), frequency = 12)
+
+autoplot(energy_subset_ts[,col_renewable])+
+  autolayer(ts_deseason_renewable_data, series = "Deseasoned Renewable")
+```
+
+```{r Plot deseason series for hydro}
+hydro_seas_comp <- array(0,nobs)
+i <- 1
+for(i in 1:nobs){
+  hydro_seas_comp[i] <- beta_intercept_hydro + beta_coeff_hydro %*%
+    dummies_hydro[i,]
+}
+
+deseason_hydro <- energy_subset[2] - hydro_seas_comp
+
+ts_deseason_hydro_data <- ts(deseason_hydro, start = c(1973,1), frequency = 12)
+
+autoplot(energy_subset_ts[,col_hydro])+
+  autolayer(ts_deseason_hydro_data, series = "Deseasoned Hydro")
+```
+
 
 ### Q9
 Plot ACF and PACF for the deseason series and compare with the plots from Q1. You may use plot_grid() again to get them side by side, but not mandatory. Did the plots change? How?
 
+```{r ACF and PACF for the deseasoned series}
+# ACF and PACF using ggAcf() and ggPacf()
+acf_renewable_deseason <- ggAcf(ts_deseason_renewable_data, lag.max = 40) + 
+  ggtitle(paste("ACF: Deseasoned Renewable"))
+acf_hydro_deseason <- ggAcf(ts_deseason_hydro_data, lag.max = 40) + 
+  ggtitle(paste("ACF: Deseasoned Hydro"))
+
+pacf_renewable_deseason <- ggPacf(ts_deseason_renewable_data, lag.max = 40) + 
+  ggtitle(paste("PACF:Deseasoned Renewable"))
+pacf_hydro_deseason <- ggPacf(ts_deseason_hydro_data, lag.max = 40) + 
+  ggtitle(paste("PACF: Deseasoned Hydro"))
+
+# Using plot_grid to arrange plots (all are now ggplot objects)
+plot_grid(acf_renewable_deseason, acf_hydro_deseason, pacf_renewable_deseason, 
+          pacf_hydro_deseason, ncol = 2)
+```
 
