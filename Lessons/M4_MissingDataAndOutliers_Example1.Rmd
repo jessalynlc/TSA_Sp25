@@ -2,6 +2,8 @@
 title: "M4: Outliers and Missing Data - Inflow Data"
 author: "Luana Lima"
 output: pdf_document
+editor_options: 
+  chunk_output_type: console
 ---
 
 ## Setting R code chunk options
@@ -99,6 +101,8 @@ The stats package has a function called decompose(). This function only take tim
 
 The random component is the time series without seasonal and trend component. Let's try to identify outliers by looking at the random component only.
 
+Decompose use moving average method.
+
 ```{r}
 #Using R decompose function
 iHP=1
@@ -112,6 +116,9 @@ sd_inflow <- sd(inflow_random)
 
 cat(mean_inflow,sd_inflow)
 #Note random series has some missing values, that is why we got NAs
+#random is original data - season - trend.
+#Look at trend comp that it also starts with NA
+#Talking about moving average, whenever we use this to calculate trend component, if we do centered moving average, we'll lose first few observations and last few observations. You can only find trend component after 6 months! 
 
 #Compute mean and standard deviation without missing values
 mean_inflow <- mean(na.exclude(inflow_random))  #exclude NA or missing observation to compute mean and std
@@ -134,6 +141,7 @@ df_inflow_random <- data.frame(date=my_date,month=as.factor(month(my_date)),infl
 
 #How many NAs we have, you can get it from summary or using is.na()
 sum(is.na(df_inflow_random$inflow))
+#6 in the beginning, 6 at the end
 
 #We have NAs in the beginning and end of data, just remove them
 head(df_inflow_random,10)
