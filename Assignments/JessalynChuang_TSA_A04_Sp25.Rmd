@@ -111,7 +111,7 @@ What can you tell from this plot? Which method seems to have been more efficient
 
 ```{r}
 autoplot(renewable_ts[,1], series = "Original") +
-  autolayer(ts_renewable_detrend[,1],series="Detrended") +
+  autolayer(renewable_detrend_ts[,1],series="Detrended") +
   autolayer(renewable_diff,series="Differenced")+
   ylab("Energy [Trillion Btu]") +
   ggtitle("Total Renewable Energy Production")
@@ -189,11 +189,11 @@ summary(MannKendall(yearly_ts))
 #Deterministic trend with Spearman Correlation Test
 my_year <- c(1973:2024)
 print("Results from Spearman Correlation")
-print(cor(yearly_ts, my_year, method="spearman"))
+print(cor.test(yearly_ts, my_year, method="spearman"))
 
 #ADF Test
 print("Results for ADF test/n")
 print(adf.test(yearly_ts,alternative = "stationary")) #stationary over stochastic trend
 ```
 
-> Answer: Yes, the results from the Mann Kendall and ADF tests were similar (reject the null hypothesis for Mann Kwnsll, meaning that the data follows a trend; accept the null hypothesis for ADF meaning that the data contains a unit root and has a stochastic trend). The Spearman Correlation test result showed that the correlation coefficient is 0.92, meaning that there is an increasing trend, which is apparent from the plot as well!
+> Answer: Yes, the results from the Mann Kendall and ADF tests were similar (reject the null hypothesis for Mann Kendall, meaning that the data follows a trend; reject the null hypothesis for the Spearman Correlation and accept the alternate hypothesis stating that rho is not equal to 0 and that there is a trend; accept the null hypothesis for ADF meaning that the data contains a unit root and has a stochastic trend). The Spearman Correlation test result showed that the correlation coefficient is 0.92, meaning that there is an increasing trend, which is apparent from the plot as well!
