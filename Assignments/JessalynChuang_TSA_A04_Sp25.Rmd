@@ -30,6 +30,7 @@ library(tseries)
 library(readxl)
 library(base)
 library(cowplot)
+library(tidyverse)
 ```
 
 ## Questions 
@@ -144,27 +145,55 @@ Compute the Seasonal Mann-Kendall and ADF Test for the original "Total Renewable
 
 ```{r}
 #Seasonal Mann-Kendall
-summary(smk.test(renewable_ts))
+summary(SeasonalMannKendall(renewable_ts))
 
 #ADF Test
 print("Results for ADF test/n")
 print(adf.test(renewable_ts,alternative = "stationary")) #stationary over stochastic trend
 ```
 
-> Answer: The Seasonal Mann-Kendall test showed p-value being significant for every single month. This means that we reject the null hypothesis that the data is i.i.d in favor of the alternative hypothesis that the data follows a trend. For the ADF test, since the p-value was 0.92, we accept the null hypothesis that the data contains a unit root meaning that the series has a stochastic trend. Overall, the time series has a trend, as indicated by the Mann-Kendall test. However, the series is still non-stationary as it has a unit root that makes differencing the data necessary to remove the trend and achieve stationarity.
+> Answer: The Seasonal Mann-Kendall test showed p-value being significant. This means that we reject the null hypothesis that the data is i.i.d in favor of the alternative hypothesis that the data follows a trend. For the ADF test, since the p-value was 0.92, we accept the null hypothesis that the data contains a unit root meaning that the series has a stochastic trend. Overall, the time series has a trend, as indicated by the Mann-Kendall test. However, the series is still non-stationary as it has a unit root that makes differencing the data necessary to remove the trend and achieve stationarity.
 
 ### Q6
 Aggregate the original "Total Renewable Energy Production" series by year. You can use the same procedure we used in class. Store series in a matrix where rows represent months and columns represent years. And then take the columns mean using function colMeans(). Recall the goal is the remove the seasonal variation from the series to check for trend. Convert the accumulates yearly series into a time series object and plot the series using autoplot().
 
 ```{r}
+renewable_with_date <- energy_data[, c(1,5)]
+renewable_with_date$Month <- ymd(renewable_with_date$Month)
 
+date_matrix <- renewable_with_date %>%
+  mutate(Year = year(Month),
+         Month = month(Month, label = TRUE))  
+
+renewable_matrix <- date_matrix %>%
+  group_by(Year, Month) %>% 
+  summarise(Total_Production = sum(`Total Renewable Energy Production`, na.rm = TRUE), .groups = "drop") %>%
+  pivot_wider(names_from = Year, values_from = Total_Production) %>%
+  column_to_rownames(var = "Month")
+
+yearly_series <- colMeans(renewable_matrix, na.rm = TRUE)
+yearly_ts <- ts(yearly_series, start = 1973, frequency = 1)
+
+autoplot(yearly_ts) +
+  ggtitle("Aggregated Total Renewable Energy Production") +
+  ylab("Energy [Trillion Btu]") 
 ```
 
 ### Q7
 Apply the Mann Kendall, Spearman correlation rank test and ADF. Are the results from the test in agreement with the test results for the monthly series, i.e., results for Q6?
 
 ```{r}
+#Mann-Kendall
+summary(MannKendall(yearly_ts))
 
+#Deterministic trend with Spearman Correlation Test
+my_year <- c(1973:2024)
+print("Results from Spearman Correlation")
+print(cor(yearly_ts, my_year, method="spearman"))
+
+#ADF Test
+print("Results for ADF test/n")
+print(adf.test(yearly_ts,alternative = "stationary")) #stationary over stochastic trend
 ```
 
-> Answer: 
+> Answer: Yes, the results from the Mann Kendall and ADF tests were similar (reject the null hypothesis for Mann Kwnsll, meaning that the data follows a trend; accept the null hypothesis for ADF meaning that the data contains a unit root and has a stochastic trend). The Spearman Correlation test result showed that the correlation coefficient is 0.92, meaning that there is an increasing trend, which is apparent from the plot as well!
