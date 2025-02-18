@@ -1,5 +1,3 @@
-Code
-
 ---
 title: "ENV 797 - Time Series Analysis for Energy and Environment Applications | Spring 2025"
 subtitle: "Assignment 5 - Due date 02/18/25"
@@ -167,9 +165,7 @@ autoplot(wind_decomp$random) +
   theme_minimal()
 ```
 
-The trend components for both wind and solar energy show strong growth, especially from around 2010 onward. Wind energy has a sharper growth trajectory compared to solar energy.
-
-For the random component, it doesn’t appear purely random. It shows a clear repeating pattern, especially earlier in the time series. This suggests that some seasonal pattern remains in the residuals, indicating that the decomposition may not have fully captured the seasonal structure.
+> Answer: The trend components for both wind and solar energy show strong growth, especially from around 2010 onward. Wind energy has a sharper growth trajectory compared to solar energy. For the random component, it doesn’t appear purely random. It shows a clear repeating pattern, especially earlier in the time series. This suggests that some seasonal pattern remains in the residuals, indicating that the decomposition may not have fully captured the seasonal structure.
 
 ### Q5
 
@@ -203,38 +199,102 @@ autoplot(wind_decomp_2$random) +
   theme_minimal()
 ```
 
+> Answer: In the additive decomposition, the random component sees increasing fluctuations in later years, suggesting that the model is not properly capturing the changing variability in the data. Since an additive model assumes constant variance, it forces fluctuations to remain fixed in magnitude regardless of the trend. If the actual data sees fluctuations grow as the trend increases, the additive model would misrepresent the pattern. Meanwhile, in the multiplicative decomposition, the larger oscillations are in the early years, indicating that when energy consumption was low, fluctuations were more pronounced, which aligns with the dataset having a non-constant variance. This suggests that the data's variability changes with the trend, making a multiplicative approach a better fit.
+
 ### Q6
 
 When fitting a model to this data, do you think you need all the historical data? Think about the data from 90s and early 20s. Are there any information from those years we might need to forecast the next six months of Solar and/or Wind consumption. Explain your response.
 
-> Answer:
+> Answer: The early data from the 90s and early 2000s are not super useful for forecasting the next six months of solar and wind energy consumption because consumption remained relatively flat during that period and does not reflect the rapid growth seen in recent years. Since energy consumption patterns have shifted significantly, older data might not be helpful in explaining the recent trends. The model should be trained on more recent data to better capture the current dynamics.
 
 ### Q7
 
 Create a new time series object where historical data starts on January 2012. Hint: use `filter()` function so that you don't need to point to row numbers, .i.e, `filter(xxxx, year(Date) >= 2012 )`. Apply the decompose function `type=additive` to this new time series. Comment the results. Does the random component look random? Think about our discussion in class about seasonal components that depends on the level of the series. 
 
 ```{r}
+renewable_cleaned_filtered <- filter(renewable_cleaned, year(Month) >= 2012)
+solar_ts_filtered <- ts(renewable_cleaned_filtered[,2], start = c(2012, 1), frequency = 12)
+wind_ts_filtered <- ts(renewable_cleaned_filtered[,3], start = c(2012, 1), frequency = 12)
 
+# Decompose Solar and Wind Time Series
+solar_filtered_decomp <- decompose(solar_ts_filtered, type = "additive")
+wind_filtered_decomp <- decompose(wind_ts_filtered, type = "additive")
+
+# Plot Solar Trend and Random Components
+autoplot(solar_filtered_decomp$trend) +
+  ggtitle("Solar Energy Trend Component 2012-2024") +
+  ylab("Energy Consumption (Trillion Btu)") +
+  theme_minimal()
+
+autoplot(solar_filtered_decomp$random) +
+  ggtitle("Solar Energy Random Component 2012-2024") + 
+  ylab("Energy Consumption (Trillion Btu)") +
+  theme_minimal()
+
+# Plot Wind Trend and Random Components
+autoplot(wind_filtered_decomp$trend) +
+  ggtitle("Wind Energy Trend Component 2012-2024") + 
+  ylab("Energy Consumption (Trillion Btu)") +
+  theme_minimal()
+
+autoplot(wind_filtered_decomp$random) +
+  ggtitle("Wind Energy Random Component 2012-2024") + 
+  ylab("Energy Consumption (Trillion Btu)")+
+  theme_minimal()
 ```
 
-> Answer:
+> Answer: The random component in the additive decomposition does not look random because it has some structure and seems to have increasing variance over time, which suggests that the additive model is not the best choice. In our class discussion about seasonal components that depend on the level of series, when seasonal variations grow as the overall level of the series increases, an additive decomposition would force the seasonality to remain constant, which wouldn't be correct if seasonality depends on the level of the series (aka fluctuations grow as the trend increases, which it seems to do here).
 
 ## Identify and Remove outliers
 
 ### Q8
 
-Apply the `tsclean()` to both series from Q7. Did the function removed any outliers from the series? Hint: Use `autoplot()` to check if there is difference between cleaned series and original series.
+Apply the `tsclean()` to both series from Q4. Did the function removed any outliers from the series? Hint: Use `autoplot()` to check if there is difference between cleaned series and original series.
 
 ```{r}
+solar_ts_clean_1984 <- tsclean(solar_ts)
+#Time index was not transferring over, so re-assigned time indices for wind_ts_clean
+solar_ts_clean_1984 <- ts(solar_ts_clean_1984, start = start(solar_ts), frequency = frequency(solar_ts))
 
+wind_ts_clean_1984 <- tsclean(wind_ts)
+#Time index was not transferring over, so re-assigned time indices for wind_ts_clean
+wind_ts_clean_1984 <- ts(wind_ts_clean_1984, start = start(wind_ts), frequency = frequency(wind_ts))
+
+autoplot(solar_ts_clean_1984, series="Solar Clean") +
+  autolayer(solar_ts, series="Solar Raw") +
+  ylab("Solar Energy Consumption (Trillion Btu)") +
+  ggtitle("Solar Energy Consumption Raw vs Cleaned Data (1984 Onwards)")
+
+autoplot(wind_ts_clean_1984, series="Wind Clean") +
+  autolayer(wind_ts, series="Wind Raw") +
+  ylab("Wind Energy Consumption (Trillion Btu)") +
+  ggtitle("Wind Energy Consumption Raw vs Cleaned Data (1984 Onwards)")
 ```
+
+> Answer: A lot of outliers were removed from the beginning of the dataset, but much more noticeably in the later years when the trend started to change and grow from the 2010s onwards for both wind and solar. This is because the function is learning from the entire dataset, which includes a long period of low and stable values before a steady trend upwards in recent years; there was much lower variance in early years compared to later years. This resulted in considerable outlier removal in efforts to make the series smoother in the later years based on what it understands from the years before there was a lot of upward trend.
 
 ### Q9
 
-Redo number Q8 but now with the time series you created on Q7, i.e., the series starting in 2014. Using what `autoplot()` again what happened now?Did the function removed any outliers from the series?
+Redo number Q8 but now with the time series you created on Q7, i.e., the series starting in 2012. Using what `autoplot()` again what happened now? Did the function removed any outliers from the series?
 
 ```{r}
+solar_ts_clean <- tsclean(solar_ts_filtered)
+#Time index was not transferring over, so re-assigned time indices for wind_ts_clean
+solar_ts_clean <- ts(solar_ts_clean, start = start(solar_ts_filtered), frequency = frequency(solar_ts_filtered))
 
+wind_ts_clean <- tsclean(wind_ts_filtered)
+#Time index was not transferring over, so re-assigned time indices for wind_ts_clean
+wind_ts_clean <- ts(wind_ts_clean, start = start(wind_ts_filtered), frequency = frequency(wind_ts_filtered))
+
+autoplot(solar_ts_clean, series="Solar Clean") +
+  autolayer(solar_ts_filtered, series="Solar Raw") +
+  ylab("Solar Energy Consumption (Trillion Btu)") +
+  ggtitle("Solar Energy Consumption Raw vs Cleaned Data (2012 Onwards)")
+
+autoplot(wind_ts_clean, series="Wind Clean") +
+  autolayer(wind_ts_filtered, series="Wind Raw") +
+  ylab("Wind Energy Consumption (Trillion Btu)") +
+  ggtitle("Wind Energy Consumption Raw vs Cleaned Data (2012 Onwards)")
 ```
 
-> Answer:
+> Answer: There was much less outlier removal. When using data from 2012 onwards, the function only learns from the years that have seen high growth, which means it does not consider as much of the high growth as outliers compared to when the older historical data was included. This means that tsclean() is less likely to treat large fluctuations as outliers since they are more common in the recent period.
