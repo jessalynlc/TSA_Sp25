@@ -1,7 +1,7 @@
 ---
 title: "ENV 797 - Time Series Analysis for Energy and Environment Applications | Spring 2025"
 subtitle: "Assignment 5 - Due date 02/18/25"
-author: "Student Name"
+author: "Jessalyn Chuang"
 output: pdf_document
 geometry: margin=2.54cm
 editor_options: 
@@ -28,8 +28,7 @@ library(ggplot2)
 library(Kendall)
 library(lubridate)
 library(tidyverse)  #load this package so yon clean the data frame using pipes
-
-
+library(readxl)
 ```
 
 ## Decomposing Time Series
@@ -40,8 +39,20 @@ Consider the same data you used for A04 from the spreadsheet "Table_10.1_Renewab
 #Importing data set - using xlsx package
 energy_data <- read.xlsx(file="./Data/Table_10.1_Renewable_Energy_Production_and_Consumption_by_Source.xlsx",header=FALSE,startRow = 13,sheetIndex=1) #startRow is equivalent to skip on read.table
 
-#Now let's extract the column names from row 11 only
-read_col_names <- read.xlsx(file="./Data/Table_10.1_Renewable_Energy_Production_and_Consumption_by_Source.xlsx",header=FALSE,startRow = 11,endRow=11,sheetIndex=1)
+energy_data <- read_excel(
+  path = "./Data/Table_10.1_Renewable_Energy_Production_and_Consumption_by_Source.xlsx",
+  sheet = 1,
+  col_names = FALSE,
+  skip = 12  # 'skip' is equivalent to 'startRow' - 1
+)
+
+read_col_names <- read_excel(
+  path = "./Data/Table_10.1_Renewable_Energy_Production_and_Consumption_by_Source.xlsx",
+  sheet = 1,
+  col_names = FALSE,
+  skip = 10,    # Skip first 10 rows, start reading at row 11
+  n_max = 1     # Read only 1 row (row 11)
+)
 
 colnames(energy_data) <- read_col_names
 head(energy_data)
