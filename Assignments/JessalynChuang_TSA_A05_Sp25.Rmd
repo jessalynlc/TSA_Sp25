@@ -1,3 +1,5 @@
+Code
+
 ---
 title: "ENV 797 - Time Series Analysis for Energy and Environment Applications | Spring 2025"
 subtitle: "Assignment 5 - Due date 02/18/25"
@@ -37,8 +39,6 @@ Consider the same data you used for A04 from the spreadsheet "Table_10.1_Renewab
 
 ```{r}
 #Importing data set - using xlsx package
-energy_data <- read.xlsx(file="./Data/Table_10.1_Renewable_Energy_Production_and_Consumption_by_Source.xlsx",header=FALSE,startRow = 13,sheetIndex=1) #startRow is equivalent to skip on read.table
-
 energy_data <- read_excel(
   path = "./Data/Table_10.1_Renewable_Energy_Production_and_Consumption_by_Source.xlsx",
   sheet = 1,
@@ -67,8 +67,12 @@ nvar=ncol(energy_data)
 For this assignment you will work only with the following columns: Solar Energy Consumption and Wind Energy Consumption. Create a data frame structure with these two time series only and the Date column. Drop the rows with *Not Available* and convert the columns to numeric. You can use filtering to eliminate the initial rows or convert to numeric and then use the drop_na() function. If you are familiar with pipes for data wrangling, try using it!
 
 ```{r}
-
-
+#pulling solar energy consumption and wind energy consumption data frame
+renewable <- energy_data[, c(1, 8:9)]
+renewable_cleaned <- renewable %>%
+  mutate(across(2:3, as.numeric)) %>%
+  drop_na() %>% 
+  mutate(Month = ymd(Month))
 ```
 
 ### Q2
@@ -76,7 +80,27 @@ For this assignment you will work only with the following columns: Solar Energy 
 Plot the Solar and Wind energy consumption over time using ggplot. Plot each series on a separate graph. No need to add legend. Add informative names to the y axis using `ylab()`. Explore the function `scale_x_date()` on ggplot and see if you can change the x axis to improve your plot. Hint: use `scale_x_date(date_breaks = "5 years", date_labels = "%Y")")`
 
 ```{r}
+#Solar Energy Consumption over time
+solar_plot = ggplot(renewable_cleaned, aes(x = Month, 
+                              y =`Solar Energy Consumption`)) +
+  geom_line() +
+  labs(title = "Solar Energy Consumption over Time",
+       x = "Time",
+       y = "Solar Energy Consumption (Trillion Btu)") +
+  scale_x_date(date_breaks = "5 years", date_labels = "%Y")
 
+solar_plot
+
+#Wind Energy Consumption over time
+wind_plot = ggplot(renewable_cleaned, aes(x = Month, 
+                              y =`Wind Energy Consumption`)) +
+  geom_line() +
+  labs(title = "Wind Energy Consumption over Time",
+       x = "Time",
+       y = "Solar Energy Consumption (Trillion Btu)") +
+  scale_x_date(date_breaks = "5 years", date_labels = "%Y")
+
+wind_plot
 ```
 
 ### Q3
@@ -84,9 +108,15 @@ Plot the Solar and Wind energy consumption over time using ggplot. Plot each ser
 Now plot both series in the same graph, also using ggplot(). Use function `scale_color_manual()` to manually add a legend to ggplot. Make the solar energy consumption red and wind energy consumption blue. Add informative name to the y axis using `ylab("Energy Consumption)`. And use function `scale_x_date()` to set x axis breaks every 5 years.
 
 ```{r}
-
-
-
+ggplot() +
+  geom_line(data = renewable_cleaned, aes(x = Month, y = `Solar Energy Consumption`, color = "Solar Energy")) +
+  geom_line(data = renewable_cleaned, aes(x = Month, y = `Wind Energy Consumption`, color = "Wind Energy")) +
+  scale_color_manual(values = c("Solar Energy" = "red", "Wind Energy" = "blue")) +
+  scale_x_date(date_breaks = "5 years", date_labels = "%Y") +
+  labs(title = "Solar and Wind Energy Consumption Over Time",
+       x = "Year",
+       y = "Energy Consumption (Trillion Btu)",
+       color = "Energy Type")
 ```
 
 
@@ -106,16 +136,71 @@ Additional info on `decompose()`.
 Transform wind and solar series into a time series object and apply the decompose function on them using the additive option, i.e., `decompose(ts_data, type = "additive")`. What can you say about the trend component? What about the random component? Does the random component look random? Or does it appear to still have some seasonality on it?
 
 ```{r}
+# Create time series for Solar and Wind separately
+solar_ts <- ts(renewable_cleaned[,2], start = c(1984, 1), frequency = 12)
+wind_ts <- ts(renewable_cleaned[,3], start = c(1984, 1), frequency = 12)
 
+# Decompose Solar and Wind Time Series
+solar_decomp <- decompose(solar_ts, type = "additive")
+wind_decomp <- decompose(wind_ts, type = "additive")
+
+# Plot Solar Trend and Random Components
+autoplot(solar_decomp$trend) +
+  ggtitle("Solar Energy Trend Component") +
+  ylab("Energy Consumption (Trillion Btu)") +
+  theme_minimal()
+
+autoplot(solar_decomp$random) +
+  ggtitle("Solar Energy Random Component") + 
+  ylab("Energy Consumption (Trillion Btu)") +
+  theme_minimal()
+
+# Plot Wind Trend and Random Components
+autoplot(wind_decomp$trend) +
+  ggtitle("Wind Energy Trend Component") + 
+  ylab("Energy Consumption (Trillion Btu)") +
+  theme_minimal()
+
+autoplot(wind_decomp$random) +
+  ggtitle("Wind Energy Random Component") + 
+  ylab("Energy Consumption (Trillion Btu)")+
+  theme_minimal()
 ```
 
+The trend components for both wind and solar energy show strong growth, especially from around 2010 onward. Wind energy has a sharper growth trajectory compared to solar energy.
+
+For the random component, it doesn’t appear purely random. It shows a clear repeating pattern, especially earlier in the time series. This suggests that some seasonal pattern remains in the residuals, indicating that the decomposition may not have fully captured the seasonal structure.
 
 ### Q5
 
 Use the decompose function again but now change the type of the seasonal component from additive to multiplicative. What happened to the random component this time?
 
 ```{r}
+# Decompose Solar and Wind Time Series
+solar_decomp_2 <- decompose(solar_ts, type = "multiplicative")
+wind_decomp_2 <- decompose(wind_ts, type = "multiplicative")
 
+# Plot Solar Trend and Random Components
+autoplot(solar_decomp_2$trend) +
+  ggtitle("Solar Energy Trend Component") + 
+  ylab("Energy Consumption (Trillion Btu)")+
+  theme_minimal()
+
+autoplot(solar_decomp_2$random) +
+  ggtitle("Solar Energy Random Component") + 
+  ylab("Energy Consumption (Trillion Btu)")+
+  theme_minimal()
+
+# Plot Wind Trend and Random Components
+autoplot(wind_decomp_2$trend) +
+  ggtitle("Wind Energy Trend Component") + 
+  ylab("Energy Consumption (Trillion Btu)")+
+  theme_minimal()
+
+autoplot(wind_decomp_2$random) +
+  ggtitle("Wind Energy Random Component") + 
+  ylab("Energy Consumption (Trillion Btu)")+
+  theme_minimal()
 ```
 
 ### Q6
