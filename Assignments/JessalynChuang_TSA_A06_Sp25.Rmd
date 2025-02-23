@@ -1,7 +1,7 @@
 ---
 title: "ENV 797 - Time Series Analysis for Energy and Environment Applications | Spring 2025"
 subtitle: "Assignment 6 - Due date 02/27/25"
-author: "Student Name"
+author: "Jessalyn Chuang"
 output: pdf_document
 geometry: margin=2.54cm
 ---
@@ -20,8 +20,14 @@ R packages needed for this assignment: "ggplot2", "forecast", "tseries" and "sar
 
 ```{r}
 #Load/install required package here
-
-
+library(lubridate)
+library(ggplot2)
+library(forecast)  
+library(Kendall)
+library(tseries)
+library(outliers)
+library(tidyverse)
+library(cowplot)
 ```
 
 This assignment has general questions about ARIMA Models.
@@ -32,11 +38,11 @@ Describe the important characteristics of the sample autocorrelation function (A
 
 * AR(2)
 
-> Answer:
+> Answer: For AR models, we are looking for the ACF to decay exponentially with time, which reflects the persistence of autocorrelations within the data over time. The PACF will identify the order of the AR model. In this case, this is a second order model where lag 2 must be included in the model. This is the number of lags that have a direct effect on the current observations. As a result, the current value of this time series is modeled as a linear combination of the two immediately preceding values.
 
 * MA(1)
 
-> Answer:
+> Answer: In MA models, the order is determined by the ACF. For an MA(1) model, the ACF would show a significant spike at lag 1 and then cuts off abruptly for higher lags. This is because only a limited number of past error terms directly affect the current observations. However, the PACF for an MA(1) model tends to decay gradually because the effects of past error terms tend to be spread out over several lags.
 
 ## Q2
 
