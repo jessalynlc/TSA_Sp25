@@ -51,35 +51,93 @@ Recall that the non-seasonal ARIMA is described by three parameters ARIMA$(p,d,q
 (a) Consider three models: ARMA(1,0), ARMA(0,1) and ARMA(1,1) with parameters $\phi=0.6$ and $\theta= 0.9$. The $\phi$ refers to the AR coefficient and the $\theta$ refers to the MA coefficient. Use the `arima.sim()` function in R to generate $n=100$ observations from each of these three models. Then, using `autoplot()` plot the generated series in three separate graphs.
 
 ```{r}
+set.seed(123)
+n <- 100
 
+arma10_sim <- arima.sim(n = n, list(ar = 0.6), sd = 1)
+# Plot the ARMA(1,0) series
+ts.plot(arma10_sim, main = "Simulated ARMA(1,0) Process (phi = 0.6)", 
+        ylab = "X_t", xlab = "Time")
+
+arma01_sim <- arima.sim(n = n, list(ma = 0.9), sd = 1)
+#Plot the ARMA(0,1) series
+ts.plot(arma01_sim, main = "Simulated ARMA(0,1) Process (theta = 0.9)",
+        ylab = "X_t", xlab = "Time")
+
+arma11_sim <- arima.sim(n = n, list(ar =0.6, ma = 0.9), sd = 1)
+# Plot the ARMA(1,1) series
+ts.plot(arma11_sim, main = "Simulated ARMA(1,1) Process (phi = 0.6, theta = 0.9)", 
+        ylab = "X_t", xlab = "Time")
 ```
 
 (b) Plot the sample ACF for each of these models in one window to facilitate comparison (Hint: use `cowplot::plot_grid()`).
 
 
 ```{r}
-
+plot_grid(
+  autoplot(Acf(arma10_sim,lag.max=40, plot = FALSE)), 
+  autoplot(Acf(arma01_sim,lag.max=40, plot = FALSE)),
+  autoplot(Acf(arma11_sim,lag.max=40, plot = FALSE)), nrow = 1
+)
 ```
 
 (c) Plot the sample PACF for each of these models in one window to facilitate comparison.
 
 ```{r}
-
+plot_grid(
+  autoplot(Pacf(arma10_sim,lag.max=40, plot = FALSE)), 
+  autoplot(Pacf(arma01_sim,lag.max=40, plot = FALSE)),
+  autoplot(Pacf(arma11_sim,lag.max=40, plot = FALSE)), nrow = 1
+)
 ```
 
 (d) Look at the ACFs and PACFs. Imagine you had these plots for a data set and you were asked to identify the model, i.e., is it AR, MA or ARMA and the order of each component. Would you be able identify them correctly? Explain your answer.
 
-> Answer:
+> Answer: For the ARMA(1,0) plot, the ACF gradually decreases with significant spikes at initial lags while the PACF cuts off after lag 1, which are both characteristic of AR models. For the ARMA(0,1) plot, the ACF cuts off after lag 1 while the PACF has a gradual decay, both which are expected of an MA model. Lastly, for the ARMA(1,1) model, both the ACF and PACF has more gradual changes, making it look like a mix of AR and MA models.
 
 (e) Compare the PACF values R computed with the values you provided for the lag 1 correlation coefficient, i.e., does $\phi=0.6$ match what you see on PACF for ARMA(1,0), and ARMA(1,1)? Should they match?
 
-> Answer:
+> Answer: "It matches for ARMA(1,0), as expected, since in the PACF, lag 1 is the most significant and represents the autoregressive term that should be included in the model equation. For ARMA(1,1), however, the PACF at lag 1 does not have to match exactly because the moving average component also influences the correlation structure, causing a more gradual decay rather than a sharp cutoff. The presence of the MA(1) term means that past errors contribute to the process, altering the way the PACF behaves across lags.
 
 (f) Increase number of observations to $n=1000$ and repeat parts (b)-(e).
 
 ```{r}
+set.seed(123)
+n <- 1000
 
+arma10_sim_2 <- arima.sim(n = n, list(ar = 0.6), sd = 1)
+# Plot the ARMA(1,0) series
+ts.plot(arma10_sim_2, main = "Simulated ARMA(1,0) Process (phi = 0.6) n = 1000", 
+        ylab = "X_t", xlab = "Time")
+
+arma01_sim_2 <- arima.sim(n = n, list(ma = 0.9), sd = 1)
+#Plot the ARMA(0,1) series
+ts.plot(arma01_sim_2, main = "Simulated ARMA(0,1) Process (theta = 0.9) n = 1000",
+        ylab = "X_t", xlab = "Time")
+
+arma11_sim_2 <- arima.sim(n = n, list(ar =0.6, ma = 0.9), sd = 1)
+# Plot the ARMA(1,1) series
+ts.plot(arma11_sim_2, main = "Simulated ARMA(1,1) Process (phi = 0.6, theta = 0.9) n = 1000", 
+        ylab = "X_t", xlab = "Time")
 ```
+
+```{r}
+plot_grid(
+  autoplot(Acf(arma10_sim_2,lag.max=40, plot = FALSE)), 
+  autoplot(Acf(arma01_sim_2,lag.max=40, plot = FALSE)),
+  autoplot(Acf(arma11_sim_2,lag.max=40, plot = FALSE)), nrow = 1
+)
+```
+
+```{r}
+plot_grid(
+  autoplot(Pacf(arma10_sim_2,lag.max=40, plot = FALSE)), 
+  autoplot(Pacf(arma01_sim_2,lag.max=40, plot = FALSE)),
+  autoplot(Pacf(arma11_sim_2,lag.max=40, plot = FALSE)), nrow = 1
+)
+```
+
+(answer questions d and e)
 
 ## Q3
 
