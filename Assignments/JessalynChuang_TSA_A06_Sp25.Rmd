@@ -28,6 +28,9 @@ library(tseries)
 library(outliers)
 library(tidyverse)
 library(cowplot)
+
+install.packages('sarima')
+library(sarima)
 ```
 
 This assignment has general questions about ARIMA Models.
