@@ -29,7 +29,7 @@ library(outliers)
 library(tidyverse)
 library(cowplot)
 
-install.packages('sarima')
+#install.packages('sarima')
 library(sarima)
 ```
 
@@ -173,13 +173,23 @@ Simulate a seasonal ARIMA$(0, 1)\times(1, 0)_{12}$ model with $\phi =0 .8$ and $
 series using `autoplot()`. Does it look seasonal?
 
 ```{r}
-
+sarima_01_10 <- sim_sarima(n = 100, model = list(ma = 0.5, ar = c(rep(0, 11), 0.8)))
+sarima_01_10_ts <- ts(sarima_01_10)
+autoplot(sarima_01_10_ts) +
+  ggtitle("ARIMA(0, 1)x(1, 0)_12")
 ```
+
+Yes the data looks seasonal, evident by the cyclical nature of the time series. There are peaks and troughs happening at regular intervals.
 
 ## Q5
 
 Plot ACF and PACF of the simulated series in Q4. Comment if the plots are well representing the model you simulated, i.e., would you be able to identify the order of both non-seasonal and seasonal components from the plots? Explain.
 
 ```{r}
-
+plot_grid(
+  autoplot(Acf(sarima_01_10,lag.max=40, plot = FALSE)), 
+  autoplot(Pacf(sarima_01_10,lag.max=40, plot = FALSE)), nrow = 1
+)
 ```
+
+The plots do not perfectly represent the model I simulated. While the strong spike at lag 12 in the ACF suggests a seasonal pattern, and the PACF spike at lag 12 supports the presence of the seasonal AR(1) term, some aspects of the plots are less clear. The ACF does not exhibit a strong spike at lag 1, which would typically be expected for an MA(1) process, and its pattern does not clearly resemble the usual behavior of either an MA or AR process. Additionally, while the PACF shows some gradual tailing off, which is characteristic of an MA process, it does not perfectly align with typical characteristics. These discrepancies suggest that while the seasonal structure is somewhat visible, the non-seasonal components may not be as clearly identifiable from these plots alone. Factors such as random variation or the possible interactions between seasonal and non-seasonal terms may be affecting the clarity of the ACF and PACF patterns.
