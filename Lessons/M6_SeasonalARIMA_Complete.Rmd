@@ -280,3 +280,5 @@ plot_grid(
 ```
 
 ## Discussion: Which one to do? ARIMA or SARIMA?
+
+SARIMA allows you to model the seasonal component so you don't have to get rid of seasonality from the data to run the model like you would do with ARIMA.
