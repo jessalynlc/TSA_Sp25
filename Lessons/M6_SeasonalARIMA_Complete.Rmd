@@ -281,4 +281,6 @@ plot_grid(
 
 ## Discussion: Which one to do? ARIMA or SARIMA?
 
-SARIMA allows you to model the seasonal component so you don't have to get rid of seasonality from the data to run the model like you would do with ARIMA.
+Our SARIMA example from class had -164 while the non-seasonal model had -198, does that mean ARIMA giving better results than SARIMA?
+
+Because of non seasonal ARIMA, we are looking at AIC, comparing fitted values with no seasonal component, so we are not comparing the same thing
