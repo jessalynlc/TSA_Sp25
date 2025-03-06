@@ -19,6 +19,9 @@ When you have completed the assignment, **Knit** the text and code into a single
 Packages needed for this assignment: "forecast","tseries". Do not forget to load them before running your script, since they are NOT default packages.\\
 
 ## Set up
+```{r setup, include=FALSE} 
+knitr::opts_chunk$set(echo = TRUE,tidy.opts=list(width.cutoff=80), tidy=FALSE) 
+```
 
 ```{r}
 #Load/install required package here
@@ -168,6 +171,7 @@ summary(MannKendall(ts_ng_gen))
 Again, both tests results with p value being less than 0.05. For both, the null hypotheses were rejected in favor for the alternate hypothesis. From the ADF test, the alternative hypothesis is that the data is stationary, and from the Mann Kendall test the alternative hypothesis is that the data follows a trend. These conclusions suggest that the original data has a deterministic trend, but no stochastic trend.
 
 Repeat of Q4
+
 Non-Seasonal:
 p = 1
 d = 0
@@ -196,13 +200,13 @@ Repeat of Q6
 checkresiduals(SARIMA_ng_gen)
 ```
 
+The residual series does not perfectly resemble a white noise series. In the first time series plot, there are some clusters of higher volatility and some slight characteristics of heteroskedasticity. The ACF should have insignificant autocorrelations across lags, but the 24th lag falls outside of this. Lastly, in the histogram, it seems roughly normally distributed though, which is closer to what we expect.
+
 ### Q8
 
 Compare the residual series for Q7 and Q6. Can you tell which ARIMA model is better representing the Natural Gas Series? Is that a fair comparison? Explain your response.
 
-It wouldn't be fair to compare the models by comparing the residuals as it wouldn't be fair to compare the two models in the first place as they are taking in different input data. The ARIMA ran on deseasoned data while the SARIMA ran on the original data.
-
-Evaluating the SARIMA model alone, it appears to capture underlying patterns well because its residuals do not appear very autocorrelated and look to be more randomly distributed.
+It wouldn't be fair to compare the models by comparing the residuals as it wouldn't be fair to compare the two models in the first place as they are taking in different input data. The ARIMA was fitted on deseasoned data while the SARIMA was fitted on the original data.
 
 ## Checking your model with the auto.arima()
 

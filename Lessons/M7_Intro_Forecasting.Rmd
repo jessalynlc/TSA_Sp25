@@ -129,20 +129,30 @@ These three function take a few main arguments:
 
 ```{r}
 #Model 1: Arithmetic mean on original data
+Mean_seas <- meanf(y = ts_electricity_price[,"All.sectors"],
+                   h = 36)
+#not typically great to forecast 36 months ahead of time just fyi! Only doing this for sake of exercise
 
+plot(Mean_seas)
+#This is an example of what you SHOULDN'T be doing! Taking data set with clear trend and seasonality and we are making a prediction based on average mean of this data! We know now that this is not a good way to forecast electricity prices :)
 
 #Model 2: Arithmetic mean on deseas data
-
+Mean_deseas <- meanf(y = deseasonal_allsectors_price,
+                   h = 36)
+plot(Mean_deseas)
 
 #Model 3: Seasonal naive on original data
-
+SNAIVE_seas <- snaive(ts_electricity_price[,"All.sectors"],
+                      h = 36)
+plot(SNAIVE_seas)
+#A much better results than just the simple average method. This one you can just look at the data, tomorrow is going to be the same temperature as April last year. No coding or anything and you'd already be doing better than simple average. Small things can be so relevant when fitting time series model to data! Though this is not capturing the trend.
 
 #Model 4: Naive on deseas data
-
+NAIVE_deseas <- naive(deseasonal_allsectors_price,
+                      h = 36)
+plot(NAIVE_deseas)
 
 ```
-
-
 
 ## Forecasting with Simple Averaging Models
 
@@ -170,16 +180,25 @@ We will try these models on the original dataset and the deaseason electricity p
 
 ```{r}
 # Model 5: Simple moving average on deseasonal data
-
+SMA_deseas <- smooth::sma(deseasonal_allsectors_price,
+                  h = 36,
+                  holdout = FALSE, silent = FALSE)
+plot(SMA_deseas)
+#Tells us SMA(1) is the best way to forecast this, because it's only order 1 is that it's repeating a value for three years
+#Runs it for multiple orders to find the best fit
 
 # Model 6: Simple moving average on original data
-
+SMA_seas <- smooth::sma(ts_electricity_price[,"All.sectors"],
+                  h = 36,holdout = FALSE, silent = FALSE)
+plot(SMA_seas)
 
 # Model 7:  Simple exponential smoothing on deseasonal data
 
 
 # Model 8:  Simple exponential smoothing on original data
-
+SES_seas <- ses(ts_electricity_price[,"All.sectors"],
+                  h = 36,holdout = FALSE)
+plot(SES_seas)
 
 
 
@@ -196,9 +215,12 @@ When forecasting with ARIMA models, first you will need to fit the model with th
 ```{r}
 
 # Model 9:  SARIMA on original data
+SARIMA_seas <- auto.arima(ts_electricity_price[,"All.sectors"])
+print(SARIMA_seas)
 
-
-
+SARIMA_forecast <- forecast(SARIMA_seas, h = 36)
+plot(SARIMA_forecast)
+#Models both historical and trend components! By far the best model for this purpose compared to naive and simple averaging techniques.
 
 # Model 10:  ARIMA on deseasonal data
 
