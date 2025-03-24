@@ -134,7 +134,7 @@ SNAIVE_seas <- snaive(ts_electricity_price[,"All.sectors"], h=12)
 checkresiduals(SNAIVE_seas)
 ```
 
-> Comments: The residuals for the seasonal naive don't show any seasonal patterns. Recall the model repeats the observation that happen in a previous seasonal lag (in this case one year ago). The residuals series show a strong autoregressive component which is not desired.
+> Comments: The residuals for the seasonal naive don't show any seasonal patterns. Recall the model repeats the observation that happen in a previous seasonal lag (in this case one year ago). The residuals series show a strong autoregressive component which is not desired. Histogram is also still not very good.
 
 ### Model 3: SARIMA
 ```{r}
@@ -142,8 +142,9 @@ SARIMA_autofit <- auto.arima(ts_electricity_price[,"All.sectors"])
 checkresiduals(SARIMA_autofit)
 ```
 
-> Comments: This is by far the best fit. Notice the residual series seems to be random and ACF shows no significant self correlation.
+> Comments: This is by far the best fit. Notice the residual series seems to be random and ACF shows no significant self correlation. Doesn't seem to have long memory here (based on time series), most ACF values are within the blue dashed lines which is what we want, and looking at the histogram, this looks much more like a normal distribution than the other two.
 
+This has been backward assessment.
 
 ## Model Performance for forecasting 12 steps ahead
 
@@ -180,6 +181,7 @@ observed <- electricity_price_processed[(nobs-n_for+1):nobs, "All.sectors"]
 #Model 1: Arithmetic mean
 MEAN_scores <- accuracy(MEAN_seas$mean,observed)  #store the performance metrics
 plot(MEAN_seas)  #plot forecasts
+#ACF1 was not calculated because we're only providing 12 observations, not enough to find ACF1
 
 #Model 2: Seasonal naive 
 SNAIVE_scores <- accuracy(SNAIVE_seas$mean,observed)
@@ -203,8 +205,8 @@ seas_scores <- as.data.frame(rbind(MEAN_scores, SNAIVE_scores, SARIMA_scores))
 row.names(seas_scores) <- c("MEAN", "SNAIVE","SARIMA")
 
 #choose model with lowest RMSE
-best_model_index <- which.min(seas_scores[,"RMSE"])
-cat("The best model by RMSE is:", row.names(seas_scores[best_model_index,]))                       
+best_model_index <- which.min(seas_scores[,"MAPE"])
+cat("The best model by MAPE is:", row.names(seas_scores[best_model_index,]))                       
                             
 ```
 
@@ -225,7 +227,9 @@ kbl(seas_scores,
 Create a code that plots all forecasted values and observed values together.
 
 ```{r}
-
+autoplot(MEAN_seas, series = "Mean") +
+  autolayer(SNAIVE_seas, series = "Naive")+
+  autolayer(SARIMA_for, series = "SARIMA")
 
 ```
 
