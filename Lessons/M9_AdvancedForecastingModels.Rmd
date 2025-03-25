@@ -109,9 +109,9 @@ We learned some approaches to model series with a single seasonal pattern.
 Today we will learn a few examples of models for multiple seasonal patterns.
 
 -   ETS
--   ARIMA with dynamic harmonic fourier components
+-   ARIMA with dynamic harmonic fourier components (harmonic fourier components are sinusoidal curves, which help represent seasonal patternsß)
 -   TBATS
--   Neural Network
+-   Neural Network (help with modeling non-linear relationships)
 
 ## Importing data with multiple seasonal patterns
 
@@ -197,7 +197,7 @@ Recall from `ts()` function that frequency is the number of observation per seas
 
 ```{r message=FALSE, warning=FALSE}
 ts_act_power_hourly <- msts(act_power_hourly$hourly_mean_active_power, 
-                            seasonal.periods =c(24,168,8766),
+                            seasonal.periods =c(24,168,8766), #day hours, week hours, year hours
                             start=c(2006,12,16)) #specify the hour
 
 ts_act_power_daily <- msts(act_power_daily$daily_mean_active_power, 
@@ -211,7 +211,11 @@ ts_act_power_daily <- msts(act_power_daily$daily_mean_active_power,
 So far we used `decompose()` and `stl()` to decompose time series in seasonal, trend and random.
 For higher frequency data we will use a variation of `stl()`, the `mstl()` that can handle `msts` objects.
 
+Decompose: would use ts.frequency argument to create seasonal component. Only seasonal component with respect to max seasonal period would be represented. You can still do it, it will just default to higher frequency though. Want to make sure we're creating patterns for each one of our components htough. stl() can however handle msts objects.
+
 Since we are only analyzing the components and don't need to store in our environment, let's use pipes to generate the decomposition plot.
+
+If you see trend in residuals, you might be forcing seasonality that you don't need.
 
 ```{r message=FALSE, warning=FALSE}
 ## ts_act_power_daily %>% mstl() = mstl(ts_act_power_daily)
@@ -244,11 +248,11 @@ We will set aside a year of data out-of-sample analysis.
 #create a subset for training purpose
 n_for = 365
 ts_act_power_daily_train <- subset(ts_act_power_daily,
-                                   end = length(ts_act_power_daily)-n_for)
+                                   end = length(ts_act_power_daily)-n_for) #stops 365 days before
 
 #create a subset for testing purpose
 ts_act_power_daily_test <- subset(ts_act_power_daily,
-                                   start = length(ts_act_power_daily)-n_for)
+                                   start = length(ts_act_power_daily)-n_for) #last 365 observations
 
 autoplot(ts_act_power_daily_train)
 autoplot(ts_act_power_daily_test)
@@ -259,7 +263,7 @@ autoplot(ts_act_power_daily_test)
 Forecasts of `stl` objects can be obtained using function `stlf()`.
 Forecast will be obtained by applying a non-seasonal exponential smoothing model to the seasonally adjusted data and re-seasonalizing using the last year of the seasonal component (for all seasonal components).
 
-The model used with `stlf` is a ETS(.,.,.) model.
+The model used with `stlf` is a ETS(.,.,.) model. (decomposes AND creates forecasts)
 ETS stands for **E**rror, **T**rend, **S**easonal and can also be be thought of as **E**xponen**T**ial **S**moothing.
 
 Possibilities for each component: Error={A,M}, Trend={N,A,M} and Seasonal = {N,A,M}.
@@ -288,6 +292,8 @@ autoplot(ts_act_power_daily) +
 #but you don't have anything stored on your environment
 
 ```
+There is a deep dip after 2009, might be trying to mimic a previous year.
+Another problem here is that it's generating some negative values, and that can happen sometimes because when you're forecasting future observations, you might be generating negative numbers (in the CIs) draw from truncated observations is one way to help
 
 ### Model 2: ARIMA + FOURIER terms
 
