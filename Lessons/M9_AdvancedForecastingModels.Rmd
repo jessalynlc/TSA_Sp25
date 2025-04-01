@@ -390,13 +390,20 @@ NN_fit <- nnetar(ts_act_power_daily_train,
                  xreg=fourier(ts_act_power_daily_train, K=c(2,12)))
 
 #NN_for <- forecast(NN_fit, h=365) 
+<<<<<<< HEAD
 NN_for <- forecast(NN_fit, h=365,
+=======
+NN_for <- forecast(NN_fit, 
+                   h=365,
+>>>>>>> 9d7415bdc0f4de805246d6a013100ba684ba5b49
                    xreg=fourier(ts_act_power_daily_train, 
                                           K=c(2,12),h=365))
+
 
 #Plot foresting results
 autoplot(NN_for) +
   ylab("Active Power") 
+
 
 #Plot model + observed data
 autoplot(ts_act_power_daily) +
